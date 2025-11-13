@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  dreampi:
+    build: .
+    restart: always
+    network_mode: "host"   # Required for DreamPi modem emulation and DNS
+    privileged: true       # Required for modem/PPP access
+    volumes:
+      - ./config:/opt/dreampi/config   # optional persistent config directory
+    environment:
+      - TZ=Etc/UTC
