@@ -1,0 +1,10 @@
+services:
+  save-file-converter:
+    build: .
+    container_name: save-file-converter
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./.config:/root/.config
+      - ./save-file-converter:/app/save-file-converter
+    restart: unless-stopped
