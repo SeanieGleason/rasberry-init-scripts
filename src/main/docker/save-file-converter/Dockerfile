@@ -1,17 +1,24 @@
-
-
-# ---- Base image ----
+  GNU nano 8.4                                                                       Dockerfile
+# Use Node.js 18
 FROM node:18.20.8
 
+# Set working directory
 WORKDIR /app
 
+# Install git
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/SeanieGleason/save-file-converter.git
+# Clone the repository
+RUN git clone https://github.com/SeanieGleason/save-file-converter.git /app/save-file-converter
 
-WORKDIR /save-file-converter/frontend
+# Set frontend folder as working directory
+WORKDIR /app/save-file-converter/frontend
+
+# Install dependencies
 RUN yarn install
 
+# Expose container port
 EXPOSE 8080
 
+# Start the frontend
 CMD ["yarn", "serve"]
