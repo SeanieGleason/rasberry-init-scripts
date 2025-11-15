@@ -2,9 +2,8 @@ version: "3"
 
 services:
   dreampi:
-    build: ../../../dreampi
-    container_name: dreampi
-    restart: unless-stopped
+    build: .
+    restart: always
     network_mode: "host"   # Required for DreamPi modem emulation and DNS
     privileged: true       # Required for modem/PPP access
     volumes:
