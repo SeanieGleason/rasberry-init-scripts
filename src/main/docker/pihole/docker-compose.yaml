@@ -7,22 +7,24 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-      - "67:67/udp"
       - "80:80/tcp"
+      - "443:443/tcp"
     restart: always
     environment:
       FTLCONF_webserver_api_password: ''
-      PIHOLE_DNS_: '1.1.1.1;1.0.0.1'
-      REV_SERVER: true
-      REV_SERVER_CIDR: '192.168.0.0/24'
-      REV_SERVER_TARGET: '192.168.0.1'
-      ADLISTS_URL: 'https://v.firebog.net/hosts/lists.php?type=tick'
-      WHITELIST_URL: 'https://raw.githubusercontent.com/anudeepND/whitelist/master/domains/whitelist.txt'
-      REGEX_WHITELIST_URL: 'https://raw.githubusercontent.com/SeanieGleason/pihole-whitelist/master/domains/whitelist-regex.list'
-      REGEX_BLACKLIST_URL: 'https://raw.githubusercontent.com/mmotti/pihole-regex/master/regex.list'
+      FTLCONF_dns_listeningMode: 'all'
+      FTLCONF_dns_upstreams: '1.1.1.1;1.0.0.1'
+      FTLCONF_dns_revServers: 'true,192.168.0.0/24,192.168.0.1,lan'
+      BLOCKLISTS_URL: 'https://v.firebog.net/hosts/lists.php?type=tick'
+      #ALLOWLISTS_URL: ''
+      WHITELIST_URL: 'https://raw.githubusercontent.com/SeanieGleason/pihole-whitelist/master/domains/whitelist.txt'
+      REGEX_WHITELIST_URL: 'https://raw.githubusercontent.com/SeanieGleason/pihole-whitelist/refs/heads/master/domains/whitelist-regex.list'
+      #BLACKLIST_URL: ''
+      REGEX_BLACKLIST_URL: 'https://raw.githubusercontent.com/SeanieGleason/pihole-blacklist/master/regex.list'
 
     volumes:
       - './etc-pihole/:/etc/pihole/'
-      - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
+    #      - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
     cap_add:
-      - NET_ADMIN
+      #      - NET_ADMIN
+      - SYS_NICE
