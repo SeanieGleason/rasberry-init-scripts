@@ -7,8 +7,8 @@ source "../common.sh"
 # URL's needed to setup DreamPi in docker.                                     #
 ################################################################################
 URLS=(
-    "$(getGitHubUrl "docker" "dream-pi" "Dockerfile")"
-    "$(getGitHubUrl "docker" "dream-pi" "docker-compose.yaml")"
+    "$(getGitHubUrl "docker" "dreampi" "Dockerfile")"
+    "$(getGitHubUrl "docker" "dreampi" "docker-compose.yaml")"
 )
 
 ################################################################################
