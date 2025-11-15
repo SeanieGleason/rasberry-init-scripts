@@ -1,4 +1,3 @@
-  GNU nano 8.4                                                                       Dockerfile
 # Use Node.js 18
 FROM node:18.20.8
 
