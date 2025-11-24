@@ -10,7 +10,13 @@ function installHDParm() {
     local FUNC_NAME="installHDParm"
     already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 
-    local usbDevice="/dev/sda1"
+    local usbDevice
+    usbDevice=$(blkid -o device -l -t LABEL=HOME_SERVER)
+    if [ -z "$usbDevice" ]; then
+        echo "No USB partition labeled HOME_SERVER found."
+        exit 1
+    fi
+
     sudo apt install -y hdparm
     sudo hdparm -I "$usbDevice" | grep 'Write cache'
 
