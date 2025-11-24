@@ -15,7 +15,7 @@ URLS=(
 # Main execution                                                               #
 ################################################################################
 function main() {
-  moveDockerFile "dreampi"
+  moveDockerFiles "dreampi"
 }
 
 main

@@ -40,7 +40,7 @@ function getGitHubUrl() {
 # Inits the application in a Docker container.                                 #
 # Copies files down from this repo, and sets docker container and starts it    #
 ################################################################################
-function moveDockerFile() {
+function moveDockerFiles() {
     local FUNC_NAME="${1}"
 
     already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return

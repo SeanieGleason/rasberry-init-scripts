@@ -14,7 +14,7 @@ URLS=(
 # Main execution                                                               #
 ################################################################################
 function main() {
-  moveDockerFile "pihole"
+  moveDockerFiles "pihole"
 }
 
 main

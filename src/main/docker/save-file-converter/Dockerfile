@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 # Clone the repository
-RUN git clone https://github.com/SeanieGleason/save-file-converter.git /app/save-file-converter
+RUN git clone euan-forrester/save-file-converter.git /app/save-file-converter
 
 # Set frontend folder as working directory
 WORKDIR /app/save-file-converter/frontend

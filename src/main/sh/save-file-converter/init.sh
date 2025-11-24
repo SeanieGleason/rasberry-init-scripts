@@ -15,7 +15,8 @@ URLS=(
 # Main execution                                                               #
 ################################################################################
 function main() {
-  moveDockerFile "save-file-converter"
+  moveDockerFiles "save-file-converter"
+  moveFile "nginx.conf"
 }
 
 main
