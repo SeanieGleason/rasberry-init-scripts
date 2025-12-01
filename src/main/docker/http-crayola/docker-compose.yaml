@@ -9,4 +9,4 @@ services:
     volumes:
       - ./downloads:/data
     ports:
-      - "8080:80"
+      - "8082:80"
