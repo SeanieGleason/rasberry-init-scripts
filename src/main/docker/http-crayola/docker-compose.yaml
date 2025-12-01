@@ -6,6 +6,8 @@ services:
     container_name: wayback_host
     environment:
       TARGET_URL: "http://www.crayola.com/"
+      FROM_TS: "19960101"
+      TO_TS:   "19961231"
     volumes:
       - ./downloads:/data
     ports:

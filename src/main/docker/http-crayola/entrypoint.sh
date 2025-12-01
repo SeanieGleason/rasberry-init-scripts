@@ -1,5 +1,4 @@
 #!/bin/sh
-
 set -e
 
 if [ -z "$TARGET_URL" ]; then
@@ -7,15 +6,20 @@ if [ -z "$TARGET_URL" ]; then
   exit 1
 fi
 
-# If directory is empty → perform download
+FROM_TS=${FROM_TS:-19960101}
+TO_TS=${TO_TS:-19961231}
+
 if [ -z "$(ls -A /data)" ]; then
-  echo "==> Downloading $TARGET_URL from Wayback Machine..."
-  wayback_machine_downloader "$TARGET_URL" --all-timestamps --directory /data
+  echo "==> Downloading $TARGET_URL (1996 snapshots only)..."
+  wayback_machine_downloader "$TARGET_URL" \
+      --from "$FROM_TS" \
+      --to "$TO_TS" \
+      --directory /data
+
   echo "==> Download complete."
 else
-  echo "==> Download already exists, skipping."
+  echo "==> Existing download detected. Skipping download."
 fi
 
 echo "==> Starting HTTP server on port 80..."
-# Serve /data as website
 exec busybox httpd -f -p 80 -h /data
