@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  wayback_host:
+    build: .
+    container_name: wayback_host
+    environment:
+      TARGET_URL: "http://www.crayola.com/"
+    volumes:
+      - ./downloads:/data
+    ports:
+      - "8080:80"
