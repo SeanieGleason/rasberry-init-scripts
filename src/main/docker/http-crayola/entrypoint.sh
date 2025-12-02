@@ -33,7 +33,7 @@ if [ -z "$(ls -A /data)" ]; then
   echo "==> Download complete."
   echo "==> Moving to nginx index.html dir."
 
-  sudo mkdir /usr/share/nginx/html
+  mkdir /usr/share/nginx/html
   ls "./data/web.archive.org/web/${timestamp}id_/$file_url/"
   mv "./data/web.archive.org/web/${timestamp}id_/$file_url/" "/usr/share/nginx/html"
   echo "==> Done move."
