@@ -34,7 +34,8 @@ if [ -z "$(ls -A /data)" ]; then
   echo $(pwd)
   ls ./data
   ls ./data/web.archive.org/web
-  ls ./data/web.archive.org/web/${timestamp}id_
+  ls "./data/web.archive.org/web/${timestamp}id_"
+  ls "./data/web.archive.org/web/${timestamp}id_/http:/"
   mv "/data/web.archive.org/web/${timestamp}id_/http:/$file_url" /usr/share/nginx/html
   echo "==> Done move."
 else
