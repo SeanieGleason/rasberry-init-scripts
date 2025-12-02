@@ -28,7 +28,7 @@ echo "==> Wayback Machine URL: $wayback_url"
 # Download site with wget
 if [ -z "$(ls -A /data)" ]; then
   echo "==> Downloading $TARGET_URL via wget..."
-  wget  -mk robots=off "$wayback_url" -P ./data
+  wget  --mirror --page-requisites --convert-links --no-parent robots=off "$wayback_url" -P ./data
   echo "==> Download complete."
   echo "==> Moving to nginx index.html dir."
 
