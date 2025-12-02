@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   http-crayola:
-    image: nginx:latest
+    image: nginx:alpine
     container_name: crayola-app
     ports:
       - "8082:80"
