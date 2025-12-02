@@ -29,11 +29,5 @@ echo "==> Wayback Machine URL: $wayback_url"
 if [ -z "$(ls -A /data)" ]; then
   echo "==> Downloading $TARGET_URL via wget..."
   wget  wget --mirror --convert-links --page-requisites --no-parent -P ./data "$wayback_url"
-  echo "==> Download complete."
-  echo "==> Moving to nginx index.html dir."
 
-  mv "./data/web.archive.org/web/${timestamp}id_/$file_url/" "./data"
-  echo "==> Done move."
-else
-  echo "==> Existing download detected. Skipping wget."
 fi
