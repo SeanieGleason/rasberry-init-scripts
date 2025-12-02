@@ -34,7 +34,8 @@ if [ -z "$(ls -A /data)" ]; then
   echo "==> Moving to nginx index.html dir."
 
   ls "./data/web.archive.org/web/${timestamp}id_/$file_url/"
-  mv -f "./data/web.archive.org/web/${timestamp}id_/$file_url/*" "/usr/share/nginx/html"
+  cd "./data/web.archive.org/web/${timestamp}id_/$file_url/"
+  mv * "/usr/share/nginx/html"
   echo "==> Done move."
 else
   echo "==> Existing download detected. Skipping wget."
