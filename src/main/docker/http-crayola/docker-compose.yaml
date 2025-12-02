@@ -10,6 +10,6 @@ services:
       TARGET_URL: "www.crayola.com"
       YEAR: "1996"
     volumes:
-      - ./data:/usr/share/nginx/html
+      - ./data:./data
       - ./entrypoint.sh:/entrypoint.sh
     entrypoint: ["/entrypoint.sh"]
