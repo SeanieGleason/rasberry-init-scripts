@@ -28,13 +28,12 @@ echo "==> Wayback Machine URL: $wayback_url"
 # Download site with wget
 if [ -z "$(ls -A /data)" ]; then
   echo "==> Downloading $TARGET_URL via wget..."
-  wget  -r -np -mk -p -e robots=off "$wayback_url" -P ./data
+  wget  -r -np -k -p -e robots=off "$wayback_url" -P ./data
   echo "==> Download complete."
   echo "==> Moving to nginx index.html dir."
 
   ls "./data/web.archive.org/web/${timestamp}id_/http:/$file_url/"
-  cat "./data/web.archive.org/web/${timestamp}id_/$file_url/http:/index.html"
-  mv "./data/web.archive.org/web/${timestamp}id_/$file_url/" .
+  mv "./data/web.archive.org/web/${timestamp}id_/$file_url/" "./data"
   echo "==> Done move."
 else
   echo "==> Existing download detected. Skipping wget."
