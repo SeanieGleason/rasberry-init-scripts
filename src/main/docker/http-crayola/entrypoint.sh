@@ -2,7 +2,7 @@
 set -e
 
 # Install dependencies
-apt-get update && apt-get install curl jq wget nginx
+apk add --no-cache curl jq wget
 
 # Ensure env vars
 if [ -z "$TARGET_URL" ] || [ -z "$YEAR" ]; then
