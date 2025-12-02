@@ -1,16 +1,18 @@
 version: "3.9"
 
 services:
-  wayback_host:
-    image: nginx:alpine
-    container_name: crayola-nginx
-    environment:
-      TARGET_URL: "http://www.crayola.com/"
-      FROM_TS: "19960101"
-      TO_TS:   "19961231"
-    volumes:
-      - /data/websites/www.crayola.com:/usr/share/nginx/html:ro
-      - /data:/
-    entrypoint: [ "/entrypoint.sh" ]
+  # ==========================================================
+  # Crayola app
+  # ==========================================================
+  http-crayola:
+    image: nginx:latest
+    container_name: crayola-app
     ports:
       - "8082:80"
+    environment:
+      TARGET_URL: "www.crayola.com"
+      YEAR: "1996"
+    volumes:
+      - ./data:/data
+      - ./entrypoint.sh:/entrypoint.sh
+    entrypoint: ["/entrypoint.sh"]
