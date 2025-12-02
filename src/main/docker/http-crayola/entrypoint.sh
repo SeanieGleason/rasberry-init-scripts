@@ -21,8 +21,7 @@ timestamp=$(echo "$json" | jq -r '.[1][1]')
 
 # Clean URL
 file_url=$(echo "$TARGET_URL" | sed 's/:80//')
-
-wayback_url="https://web.archive.org/web/${timestamp}id_/$file_url"
+wayback_url="https://web.archive.org/web/${timestamp}id_/http:/$file_url"
 
 echo "==> Wayback Machine URL: $wayback_url"
 
