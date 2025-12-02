@@ -10,5 +10,7 @@ services:
       TO_TS:   "19961231"
     volumes:
       - /data/websites/www.crayola.com:/usr/share/nginx/html:ro
+      - /data/entrypoint.sh:/entrypoint.sh
+    entrypoint: [ "/entrypoint.sh" ]
     ports:
       - "8082:80"
