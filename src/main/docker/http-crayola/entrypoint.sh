@@ -30,14 +30,7 @@ if [ -z "$(ls -A /data)" ]; then
   echo "==> Downloading $TARGET_URL via wget..."
   wget  -r -np -k -p -e robots=off "$wayback_url" -P ./data
   echo "==> Download complete."
-  echo "==> Moving to nginx index.html dir."
-  ls $(pwd)
-  ls /usr
-  ls /usr/share
-  ls /usr/share/nginx
-  ls /usr/share/nginx
-  mv "/data/web.archive.org/web/${timestamp}id_/http:/$file_url/*" /usr/share/nginx/html
-  echo "==> Done move."
+  ls ./data
 else
   echo "==> Existing download detected. Skipping wget."
 fi
