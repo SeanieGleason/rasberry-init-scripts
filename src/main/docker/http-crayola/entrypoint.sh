@@ -21,7 +21,7 @@ timestamp=$(echo "$json" | jq -r '.[1][1]')
 
 # Clean URL
 file_url=$(echo "$TARGET_URL" | sed 's/:80//')
-wayback_url="https://web.archive.org/web/${timestamp}id_/$file_url/index.html"
+wayback_url="https://web.archive.org/web/${timestamp}id_/$file_url"
 
 echo "==> Wayback Machine URL: $wayback_url"
 
@@ -32,8 +32,8 @@ if [ -z "$(ls -A /data)" ]; then
   echo "==> Download complete."
   echo "==> Moving to nginx index.html dir."
 
-  ls "/data/web.archive.org/web/${timestamp}id_/$file_url/"
-  cat "/data/web.archive.org/web/${timestamp}id_/$file_url/index.html"
+  ls "/data/web.archive.org/web/${timestamp}id_/http:/$file_url/"
+  cat "/data/web.archive.org/web/${timestamp}id_/$file_url/http:/index.html"
   mv "/data/web.archive.org/web/${timestamp}id_/$file_url/" .
   echo "==> Done move."
 else
