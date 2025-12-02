@@ -31,6 +31,9 @@ if [ -z "$(ls -A /data)" ]; then
   wget  -r -np -k -p -e robots=off "$wayback_url" -P ./data
   echo "==> Download complete."
   echo "==> Moving to nginx index.html dir."
+  echo $(pwd)
+  ls ./data
+  ls ./data/web.archive.org/web
   mv "/data/web.archive.org/web/${timestamp}id_/http:/$file_url" /usr/share/nginx/html
   echo "==> Done move."
 else
