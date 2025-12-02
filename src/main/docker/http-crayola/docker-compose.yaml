@@ -1,9 +1,6 @@
 version: "3.9"
 
 services:
-  # ==========================================================
-  # Crayola app
-  # ==========================================================
   http-crayola:
     image: nginx:latest
     container_name: crayola-app
