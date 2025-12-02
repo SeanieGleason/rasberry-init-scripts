@@ -32,7 +32,6 @@ if [ -z "$(ls -A /data)" ]; then
   echo "==> Download complete."
   echo "==> Moving to nginx index.html dir."
 
-  ls "./data/web.archive.org/web/${timestamp}id_/http:/$file_url/"
   mv "./data/web.archive.org/web/${timestamp}id_/$file_url/" "./data"
   echo "==> Done move."
 else
