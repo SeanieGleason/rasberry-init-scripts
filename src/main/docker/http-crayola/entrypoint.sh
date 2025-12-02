@@ -17,9 +17,11 @@ if [ -z "$(ls -A /data)" ]; then
 
   echo "==> Download complete."
 
+  ls /data/websites
+
   echo "Attempting curl -mk extraction on local file."
-  cd ./data/websites/www.crayola.com
-  curl -mk file:///www.crayola.com/index.html
+  wget -p -k -E -P downloaded_assets "file://$(pwd)/index.html"
+  wget -p -mk -E -P /data/websites "file://data/websites/index.html"
 
 else
   echo "==> Existing download detected. Skipping download."
