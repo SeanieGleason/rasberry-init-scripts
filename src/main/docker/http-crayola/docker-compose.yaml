@@ -2,13 +2,13 @@ version: "3.9"
 
 services:
   wayback_host:
-    build: .
-    container_name: wayback_host
+    image: nginx:alpine
+    container_name: crayola-nginx
     environment:
       TARGET_URL: "http://www.crayola.com/"
       FROM_TS: "19960101"
       TO_TS:   "19961231"
     volumes:
-      - ./downloads:/data
+      - /data/websites/www.crayola.com:/usr/share/nginx/html:ro
     ports:
       - "8082:80"

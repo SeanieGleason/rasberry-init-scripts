@@ -12,7 +12,6 @@ TO_TS=${TO_TS:-19961231}
 if [ -z "$(ls -A /data)" ]; then
   echo "==> Downloading $TARGET_URL (1996 snapshots only)..."
   wayback_machine_downloader "$TARGET_URL" \
-      --from "$FROM_TS" \
       --to "$TO_TS" \
       --directory /data
 
@@ -20,6 +19,3 @@ if [ -z "$(ls -A /data)" ]; then
 else
   echo "==> Existing download detected. Skipping download."
 fi
-
-echo "==> Starting HTTP server on port 80..."
-exec busybox httpd -f -p 80 -h /data
