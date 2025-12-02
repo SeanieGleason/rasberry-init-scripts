@@ -38,5 +38,3 @@ if [ -z "$(ls -A /data)" ]; then
 else
   echo "==> Existing download detected. Skipping wget."
 fi
-
-nginx -g "daemon off;"
