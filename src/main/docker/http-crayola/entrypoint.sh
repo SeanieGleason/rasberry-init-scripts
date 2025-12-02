@@ -16,6 +16,11 @@ if [ -z "$(ls -A /data)" ]; then
       --directory /data
 
   echo "==> Download complete."
+
+  echo "Attempting curl -mk extraction on local file."
+  cd ./data/websites/www.crayola.com
+  curl -mk file:///www.crayola.com/index.html
+
 else
   echo "==> Existing download detected. Skipping download."
 fi
