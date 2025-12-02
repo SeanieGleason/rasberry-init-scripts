@@ -12,4 +12,5 @@ services:
     volumes:
       - ./data:/data
       - ./entrypoint.sh:/entrypoint.sh
+      - ./usr/share/nginx/html:/usr/share/nginx/html
     entrypoint: ["/entrypoint.sh"]
