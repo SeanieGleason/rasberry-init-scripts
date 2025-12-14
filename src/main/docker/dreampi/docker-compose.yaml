@@ -2,25 +2,21 @@ version: '3.8'
 services:
   dreampi:
     # Build the image using the Dockerfile in the current directory
-    build: .
+    build:
+      context: .
+    image: dreampi-standalone:latest
+    container_name: dreampi
 
-    # DreamPi requires network capabilities (NET_ADMIN for PPP) and often direct device access.
-    # 'privileged: true' is the simplest way to grant these.
-    # Alternatively, you can use cap_add and devices fields:
-    # cap_add:
-    #   - NET_ADMIN
-    # devices:
-    #   - /dev/ttyACM0:/dev/ttyACM0 # Replace ttyACM0 with your modem device path on the host
+    # HIGHLY IMPORTANT: Grant privileges for network (PPP) and device access
     privileged: true
 
-    # Ensure the container starts automatically
-    restart: unless-stopped
-
-    # Use host network mode to simplify PPP setup, as it gives the container
-    # direct access to the host's network interfaces.
+    # Use host network mode for easier PPP setup
     network_mode: "host"
 
-      # If the original Ansible playbook passed environment variables for configuration,
-      # define them here for the Python/Shell scripts to use.
-      # environment:
-    # - DREAMPI_CONFIG_VAR=some_value
+    # Map the modem device from the host into the container, naming it /dev/modem
+    # as referenced in the dreampi-ppp file.
+    # !!! YOU MUST CHANGE /dev/ttyACM0 to match your actual modem device path on the host. !!!
+    devices:
+      - /dev/ttyACM0:/dev/modem
+
+    restart: unless-stopped
