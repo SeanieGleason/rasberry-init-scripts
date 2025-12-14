@@ -1,123 +1,91 @@
-# Start from a stable Linux base.
-FROM ubuntu:22.04
+# Start from a suitable Debian-based image (buster-slim aligns with the history)
+FROM debian:buster-slim
 
-# Set non-interactive mode for APT
-ENV DEBIAN_FRONTEND=noninteractive
-WORKDIR /app
+# Set environment variables
+ENV DREAMP_HOME=/home/pi/dreampi
+ENV PI_USER=pi
 
-# 1. Install necessary packages (replicating the playbook's package list)
-RUN apt-get update && \
-    apt-get install -y \
-    vim screen python3-serial python3-dev ppp libjpeg-dev \
-    python3-pil python3-rpi.gpio python3-smbus python3-pip python3-websocket git \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Create the user and home directory (following the /home/pi/dreampi structure)
+RUN groupadd --gid 1000 $PI_USER \
+    && useradd --uid 1000 --gid $PI_USER --shell /bin/bash --create-home $PI_USER \
+    && mkdir -p $DREAMP_HOME \
+    && chown -R $PI_USER:$PI_USER /home/$PI_USER
 
-# 2. Create directories for PPP configuration
-RUN mkdir -p /etc/ppp/chat
+# Set the working directory
+WORKDIR $DREAMP_HOME
 
-# 3. Inject configuration files and scripts (replacing Ansible templates)
+# -----------------------------------------------------------
+# Initial Setup and Dependencies (Steps 9, 11, 15, 25, 26, 41, 43, 47, 50, 60, 65, 89)
+# -----------------------------------------------------------
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git \
+        openssh-server \
+        wvdial \
+        dnsmasq \
+        python-serial \
+        python-sh \
+        python-pip \
+        python-iptables \
+        iptables \
+        libxtables12 \
+        python-miniupnpc \
+        arping \
+        wget \
+        g++ \
+        less \
+        vim \
+        python-requests \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# NOTE: The content below is derived directly from the GitHub templates,
-# assuming standard variable replacements (e.g., dialup script name is 'dialup').
+# Install python-iptables dependency via pip (Steps 56, 57)
+RUN pip install python-iptables
 
-# --- dreampi.conf (/etc/dreampi.conf) ---
-COPY <<EOF /etc/dreampi.conf
-[PPP]
-# The name of the script to run when dialup is attempted
-dialup_script_name=dialup
+# -----------------------------------------------------------
+# Dreampi Clone and Configuration (Steps 16, 19, 33)
+# The 'arm' packages are included here by the clone.
+# -----------------------------------------------------------
+RUN git clone https://github.com/Kazade/dreampi.git . \
+    && chown -R $PI_USER:$PI_USER . \
+    && rm -f /etc/dnsmasq.d/dnsmasq.conf \
+    && ln -s $DREAMP_HOME/etc/dnsmasq.conf /etc/dnsmasq.d/dreampi.conf
 
-[DreamPi]
-# Enable features or settings here
-led_status_enable=true
-EOF
+# Create systemd service structure and link service file (Steps 168-170)
+RUN mkdir -p /etc/systemd/system/ \
+    && ln -s $DREAMP_HOME/etc/systemd/system/dreampi.service /etc/systemd/system/dreampi.service
 
-# --- dreampi-chat (/etc/ppp/chat/dreampi-chat) ---
-COPY <<EOF /etc/ppp/chat/dreampi-chat
-# chat script for use by DreamPi
-# Assuming standard Hayes compatible modem, replace with specific AT commands if needed.
-# Expect nothing, send 'AT'
-"" AT
-# Expect 'OK', send 'ATDT' and the phone number. We assume the phone number is provided
-# by the pppd process (i.e. 'connect: /usr/sbin/chat -v -f /etc/ppp/chat/dreampi-chat')
-OK ATDT\T
-# Expect 'CONNECT', do nothing else
-CONNECT ""
-EOF
+# Link dreampi.py to /usr/local/bin (Step 81)
+RUN ln -s $DREAMP_HOME/dreampi.py /usr/local/bin/dreampi
 
-# --- dreampi-ppp (/etc/ppp/peers/dreampi-ppp) ---
-COPY <<EOF /etc/ppp/peers/dreampi-ppp
-# /etc/ppp/peers/dreampi-ppp
-# DreamPi PPP configuration (Peer)
-# Configuration derived from standard Linux PPP setup for dial-up.
+# -----------------------------------------------------------
+# Custom Packages Installation (Steps 72, 74, 186, 187, 264, 349)
+# Accessing DEB files directly from the cloned 'arm' directory.
+# -----------------------------------------------------------
+RUN dpkg -i $DREAMP_HOME/arm/dcgamespy_1.0-1.deb \
+    && dpkg -i $DREAMP_HOME/arm/dcvoip_1.0-1.deb \
+    && dpkg -i $DREAMP_HOME/arm/dc2k2_1.0.deb \
+    && dpkg -i $DREAMP_HOME/arm/dcdaytona_1.1.deb
 
-noauth
-name dreampi-client
-usepeerdns
-defaultroute
-# Use the serial device path configured in docker-compose.yml (e.g., /dev/ttyACM0)
-/dev/modem 115200
+# Fix broken dependencies after custom dpkg installs (Step 281)
+RUN apt-get update && apt-get install -y -f
 
-# Script to use for making the call. This refers to the chat script copied above.
-connect: /usr/sbin/chat -v -f /etc/ppp/chat/dreampi-chat
+# Install BBA Mode installer (Steps 355, 356)
+RUN wget --no-check-certificate https://dreamcastlive.net/files/installer-bba-mode.deb \
+    && dpkg -i installer-bba-mode.deb
 
-# Custom connection script, which handles the initial modem/line setup
-# We use the 'dialup' script copied below.
-dialup: /usr/local/bin/dialup
+# -----------------------------------------------------------
+# Wificonfig Compilation (Steps 271-274, 279)
+# -----------------------------------------------------------
+RUN g++ -o $DREAMP_HOME/local/bin/wificonfig $DREAMP_HOME/local/bin/wificonfig.cpp -std=c++11 \
+    && chmod +x $DREAMP_HOME/local/bin/wificonfig \
+    && ln -s $DREAMP_HOME/local/bin/wificonfig /usr/local/bin/wificonfig
 
-debug
-nocrtscts
-nodetach
-EOF
+# -----------------------------------------------------------
+# Final Setup & Entrypoint
+# -----------------------------------------------------------
+# Set correct ownership for the user
+RUN chown -R $PI_USER:$PI_USER /home/$PI_USER
 
-# --- dialup (/usr/local/bin/dialup) --- (Must be executable)
-COPY <<EOF /usr/local/bin/dialup
-#!/bin/bash
-# Script derived from dialup.j2.
-# This script typically runs pre-connection setup commands if needed.
-# For simplicity, we just echo the command line arguments which should be the phone number.
-echo "Dialing number: \$1"
-# In a real setup, this might execute specific AT commands for the modem before calling chat.
-# For example: echo "ATZ" > /dev/modem
-# Or just call the chat script directly with the phone number as an argument.
-/usr/sbin/pppd call dreampi-ppp \$1
-EOF
-
-# --- dreampi (/usr/local/bin/dreampi) --- (Main application script, must be executable)
-COPY <<EOF /usr/local/bin/dreampi
-#!/usr/bin/python3
-# Script derived from dreampi.j2 (Assuming it's a Python wrapper script)
-
-import serial
-import time
-import os
-import subprocess
-
-# Simple placeholder for the actual Python logic
-print("Starting DreamPi service...")
-try:
-    # Example: Open the serial port (replace with actual path if needed)
-    ser = serial.Serial('/dev/modem', 115200, timeout=1)
-    print(f"Serial port {ser.name} opened successfully.")
-
-    # This loop simulates the monitoring service
-    while True:
-        # Check modem status, handle dial-up events, etc.
-        # In a real DreamPi, this loop monitors the GPIO pins and handles network status.
-        time.sleep(5)
-
-except serial.SerialException as e:
-    print(f"Error opening serial port: {e}")
-except KeyboardInterrupt:
-    print("DreamPi service shutting down.")
-
-# This CMD is designed to keep the container running
-# In the real DreamPi, this script would enter a monitoring loop.
-subprocess.run(["tail", "-f", "/dev/null"])
-
-EOF
-
-# Set correct permissions
-RUN chmod 0755 /usr/local/bin/dreampi /usr/local/bin/dialup
-
-# The main application/monitoring script
-CMD ["/usr/local/bin/dreampi"]
+# Run the dreampi application (using --no-daemon for foreground process)
+CMD ["/usr/local/bin/dreampi", "--no-daemon"]

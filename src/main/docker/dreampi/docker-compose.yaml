@@ -1,22 +1,29 @@
 version: '3.8'
+
 services:
   dreampi:
-    # Build the image using the Dockerfile in the current directory
+    # Build the image from the Dockerfile in the current directory
     build:
       context: .
-    image: dreampi-standalone:latest
-    container_name: dreampi
+      dockerfile: Dockerfile
 
-    # HIGHLY IMPORTANT: Grant privileges for network (PPP) and device access
-    privileged: true
+    # Required for low-level network manipulation
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
 
-    # Use host network mode for easier PPP setup
+    # Use the host's network stack for gateway functionality
     network_mode: "host"
 
-    # Map the modem device from the host into the container, naming it /dev/modem
-    # as referenced in the dreampi-ppp file.
-    # !!! YOU MUST CHANGE /dev/ttyACM0 to match your actual modem device path on the host. !!!
+    # --- IMPORTANT: ADD THIS SECTION FOR MODEM ACCESS ---
+    # You MUST replace '/dev/ttyACM0' with the actual device path of your USB modem
+    # and map it into the container (e.g., to the same path).
     devices:
-      - /dev/ttyACM0:/dev/modem
+      - "/dev/ttyACM0:/dev/ttyACM0"
+      # If you are unsure of the path, you can try mounting the whole /dev directory
+      # (less secure, but sometimes easier for device discovery):
+      # - "/dev:/dev"
+      # --- END IMPORTANT SECTION ---
 
-    restart: unless-stopped
+    # Restart policy to ensure it keeps running
+    restart: always
