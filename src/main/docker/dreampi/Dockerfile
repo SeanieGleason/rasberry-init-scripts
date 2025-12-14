@@ -1,29 +1,35 @@
-# Python 3.11 base image
-FROM python:3.11-slim
+# Use a common Debian/Ubuntu base. Ubuntu 22.04 is a good modern choice.
+FROM ubuntu:22.04
 
+# Set non-interactive mode for APT
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies
-RUN apt update && apt install -y --no-install-recommends \
-        git curl ppp dnsmasq \
-        libnfnetlink-dev libmnl-dev libnetfilter-conntrack-dev \
-        iptables libxtables-dev gcc python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+# 1. Install necessary packages (replicates the Ansible apt task)
+# The rpi-chromium-mods package is specific to Raspberry Pi OS. It may fail on a non-Pi base
+# but is included for completeness. If it fails, remove it and adjust the base image.
+RUN apt-get update && \
+    apt-get install -y \
+    vim screen python3-serial python3-dev ppp libjpeg-dev \
+    python3-pil python3-rpi.gpio python3-smbus python3-pip python3-websocket git \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Clone Python3-compatible branch
-RUN git clone --branch 1.9-dle-py3 https://github.com/sairuk/dreampi.git /opt/dreampi
+# 2. Application Setup
+# Create necessary directory for PPP configuration
+RUN mkdir -p /etc/ppp/chat
 
-# Install Python dependencies
-RUN pip install --upgrade pip && \
-    pip install -r /opt/dreampi/requirements.txt
+# Copy the resolved configuration files (from Ansible template tasks)
+# Destination paths mirror those in the Ansible playbook.
+COPY dreampi.conf /etc/dreampi.conf
+COPY dreampi-chat /etc/ppp/chat/dreampi-chat
+COPY dreampi-ppp /etc/ppp/peers/dreampi-ppp
 
-WORKDIR /opt/dreampi
+# Copy and make execution scripts executable (mode: 0755)
+COPY dreampi /usr/local/bin/dreampi
+COPY dialup /usr/local/bin/dialup
 
-# Fix any invalid escape sequences (optional cleanup)
-RUN sed -i 's/\\V/\\\\V/g; s/\\N/\\\\N/g' dreampi.py
+# Ensure scripts are executable
+RUN chmod +x /usr/local/bin/dreampi /usr/local/bin/dialup
 
-# Expose required ports
-EXPOSE 80 53/tcp 53/udp 67/udp
-
-# Run Dreampi with 'start' argument
-CMD ["python", "dreampi.py", "start"]
+# 3. Command/Entrypoint
+# The command replaces the systemd service's execution of the main script.
+CMD ["/usr/local/bin/dreampi"]

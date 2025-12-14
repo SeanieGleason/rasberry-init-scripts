@@ -1,12 +1,26 @@
-version: "3"
-
+version: '3.8'
 services:
   dreampi:
+    # Build the image using the Dockerfile in the current directory
     build: .
-    restart: always
-    network_mode: "host"   # Required for DreamPi modem emulation and DNS
-    privileged: true       # Required for modem/PPP access
-    volumes:
-      - ./config:/opt/dreampi/config   # optional persistent config directory
-    environment:
-      - TZ=Etc/UTC
+
+    # DreamPi requires network capabilities (NET_ADMIN for PPP) and often direct device access.
+    # 'privileged: true' is the simplest way to grant these.
+    # Alternatively, you can use cap_add and devices fields:
+    # cap_add:
+    #   - NET_ADMIN
+    # devices:
+    #   - /dev/ttyACM0:/dev/ttyACM0 # Replace ttyACM0 with your modem device path on the host
+    privileged: true
+
+    # Ensure the container starts automatically
+    restart: unless-stopped
+
+    # Use host network mode to simplify PPP setup, as it gives the container
+    # direct access to the host's network interfaces.
+    network_mode: "host"
+
+      # If the original Ansible playbook passed environment variables for configuration,
+      # define them here for the Python/Shell scripts to use.
+      # environment:
+    # - DREAMPI_CONFIG_VAR=some_value
