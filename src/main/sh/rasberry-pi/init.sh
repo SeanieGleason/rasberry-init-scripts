@@ -33,6 +33,10 @@ sudo apt-get update --yes
 sudo apt-get upgrade --yes
 sudo apt-get dist-upgrade --yes
 sudo apt autoremove --yes
+sudo docker system prune -a --force --volumes
+rm -rf ~/pihole/etc-pihole
+find . -type f \( -name "docker-compose.yml" -o -name "docker-compose.yaml" \) \
+  -exec sudo docker compose -f "{}" up -d \;
 EOF
 
     chmod +x ~/update.sh
