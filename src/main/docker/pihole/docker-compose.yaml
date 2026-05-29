@@ -19,7 +19,7 @@ services:
       #ALLOWLISTS_URL: ''
       WHITELIST_URL: 'https://raw.githubusercontent.com/SeanieGleason/pihole-whitelist/master/domains/whitelist.txt'
       REGEX_WHITELIST_URL: 'https://raw.githubusercontent.com/SeanieGleason/pihole-whitelist/refs/heads/master/domains/whitelist-regex.list'
-      #BLACKLIST_URL: ''
+      BLACKLIST_URL: 'https://raw.githubusercontent.com/hagezi/dns-blocklists/refs/heads/main/hosts/light.txt'
       REGEX_BLACKLIST_URL: 'https://raw.githubusercontent.com/SeanieGleason/pihole-blacklist/master/regex.list'
 
     volumes:
