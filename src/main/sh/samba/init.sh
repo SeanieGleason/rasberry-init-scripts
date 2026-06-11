@@ -96,7 +96,7 @@ function setUSBDrive() {
     local uuid
     uuid=$(blkid -s UUID -o value "$usbPartition")
     if ! grep -q "$uuid" /etc/fstab; then
-        echo "UUID=$uuid $mountPoint ntfs defaults 0 0" | sudo tee -a /etc/fstab > /dev/null
+        echo "UUID=$uuid $mountPoint ntfs defaults,nofail 0 0" | sudo tee -a /etc/fstab > /dev/null
     fi
 
     mark_done "$FUNC_NAME"
