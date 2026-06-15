@@ -58,7 +58,7 @@ valid users = pi
 browseable = yes
 
 [public]
-path = /media/HOME_SERVER/public
+path = /media/PUBLIC
 writable = yes
 guest ok = yes
 create mask = 0777
@@ -103,10 +103,42 @@ function setUSBDrive() {
 }
 
 ################################################################################
+# Setup microsd card for mounting
+################################################################################
+function setMicroSdCard() {
+    local FUNC_NAME="setMicroSdCard"
+    already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
+
+    sudo apt install -y ntfs-3g
+
+    local usbPartition
+    usbPartition=$(blkid -o device -l -t LABEL=PUBLIC)
+    if [ -z "$usbPartition" ]; then
+        echo "No USB partition labeled PUBLIC found."
+        exit 1
+    fi
+
+    local mountPoint="/media/PUBLIC"
+    sudo mkdir -p "$mountPoint"
+    sudo mountpoint -q "$mountPoint" || sudo mount "$usbPartition" "$mountPoint"
+    sudo chmod 777 "$mountPoint"
+
+    # Add to fstab if not already present
+    local uuid
+    uuid=$(blkid -s UUID -o value "$usbPartition")
+    if ! grep -q "$uuid" /etc/fstab; then
+        echo "UUID=$uuid $mountPoint auto defaults,nofail,user,rw 0 2" | sudo tee -a /etc/fstab > /dev/null
+    fi
+
+    mark_done "$FUNC_NAME"
+}
+
+################################################################################
 # Main execution                                                               #
 ################################################################################
 
 setUSBDrive
+setMicroSdCard
 installSamba
 installHDParm
 
