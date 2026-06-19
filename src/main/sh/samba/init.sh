@@ -127,7 +127,7 @@ function setMicroSdCard() {
     local uuid
     uuid=$(blkid -s UUID -o value "$usbPartition")
     if ! grep -q "$uuid" /etc/fstab; then
-        echo "UUID=$uuid $mountPoint auto defaults,nofail,user,rw 0 2" | sudo tee -a /etc/fstab > /dev/null
+        echo "UUID=$uuid $mountPoint auto defaults,uid=1000,gid=1000,umask=000,nofail 0 0" | sudo tee -a /etc/fstab > /dev/null
     fi
 
     mark_done "$FUNC_NAME"
