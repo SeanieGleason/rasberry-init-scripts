@@ -11,9 +11,9 @@ function installHDParm() {
     already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 
     local usbDevice
-    usbDevice=$(blkid -o device -l -t LABEL=HOME_SERVER)
+    usbDevice=$(blkid -o device -l -t LABEL=bambi)
     if [ -z "$usbDevice" ]; then
-        echo "No USB partition labeled HOME_SERVER found."
+        echo "No USB partition labeled bambi found."
         exit 1
     fi
 
@@ -48,7 +48,7 @@ function installSamba() {
         sudo tee -a /etc/samba/smb.conf > /dev/null <<'EOF'
 
 [alt]
-path = /media/HOME_SERVER/.alt/
+path = /media/bambi/
 public = no
 writable = yes
 guest ok = no
@@ -81,9 +81,9 @@ function setUSBDrive() {
     sudo apt install -y ntfs-3g
 
     local usbPartition
-    usbPartition=$(blkid -o device -l -t LABEL=HOME_SERVER)
+    usbPartition=$(blkid -o device -l -t LABEL=bambi)
     if [ -z "$usbPartition" ]; then
-        echo "No USB partition labeled HOME_SERVER found."
+        echo "No USB partition labeled bambi found."
         exit 1
     fi
 
@@ -137,7 +137,7 @@ function setMicroSdCard() {
 # Main execution                                                               #
 ################################################################################
 
-setUSBDrive
+#setUSBDrive
 setMicroSdCard
 installSamba
 installHDParm
