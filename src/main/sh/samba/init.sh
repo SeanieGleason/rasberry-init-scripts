@@ -11,7 +11,7 @@ local FUNC_NAME="installHDParm"
 already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 
 local usbDevice
-usbDevice=$(blkid -c /dev/null -t PARTLABEL="bambi" -o device)
+usbDevice=$(sudo blkid -o device -l -t PARTLABEL=bambi)
 
 if [ -z "$usbDevice" ]; then
     echo "No USB partition labeled bambi found."
@@ -87,7 +87,7 @@ already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 sudo apt install -y cryptsetup cryptsetup-initramfs
 
 local luksPartition
-luksPartition=$(blkid -c /dev/null -t PARTLABEL="bambi" -o device)
+luksPartition=$(sudo blkid -o device -l -t PARTLABEL=bambi)
 
 if [ -z "$luksPartition" ]; then
     echo "No LUKS partition labeled bambi found."
@@ -123,7 +123,7 @@ fi
 ############################################################################
 
 local uuid
-uuid=$(blkid -s UUID -o value "$luksPartition")
+uuid=$(sudo blkid -s UUID -o value "$luksPartition")
 
 if ! grep -q "^${mapperName} " /etc/crypttab 2>/dev/null; then
     echo "${mapperName} UUID=${uuid} ${keyFile} luks,nofail" | \
@@ -173,7 +173,7 @@ function setMicroSdCard() {
   sudo apt install -y ntfs-3g
 
   local usbPartition
-  usbPartition=$(blkid -c /dev/null -o device -l -t LABEL=PUBLIC)
+  usbPartition=$(sudo blkid -o device -l -t LABEL=PUBLIC)
 
   if [ -z "$usbPartition" ]; then
       echo "No USB partition labeled PUBLIC found."
@@ -190,7 +190,7 @@ function setMicroSdCard() {
   sudo chmod 777 "$mountPoint"
 
   local uuid
-  uuid=$(blkid -s UUID -o value "$usbPartition")
+  uuid=$(sudo blkid -s UUID -o value "$usbPartition")
 
   if ! grep -q "$uuid" /etc/fstab; then
       echo "UUID=$uuid $mountPoint auto defaults,uid=1000,gid=1000,umask=000,nofail 0 0" | \
