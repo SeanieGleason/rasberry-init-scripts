@@ -11,7 +11,7 @@ local FUNC_NAME="installHDParm"
 already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 
 local usbDevice
-usbDevice=$(blkid -o device -l -t PARTLABEL=bambi)
+usbDevice=$(blkid -c /dev/null -t PARTLABEL="bambi" -o device)
 
 if [ -z "$usbDevice" ]; then
     echo "No USB partition labeled bambi found."
@@ -87,7 +87,7 @@ already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 sudo apt install -y cryptsetup cryptsetup-initramfs
 
 local luksPartition
-luksPartition=$(blkid -o device -l -t PARTLABEL=bambi)
+luksPartition=$(blkid -c /dev/null -t PARTLABEL="bambi" -o device)
 
 if [ -z "$luksPartition" ]; then
     echo "No LUKS partition labeled bambi found."
@@ -173,7 +173,7 @@ function setMicroSdCard() {
   sudo apt install -y ntfs-3g
 
   local usbPartition
-  usbPartition=$(blkid -o device -l -t LABEL=PUBLIC)
+  usbPartition=$(blkid -c /dev/null -o device -l -t LABEL=PUBLIC)
 
   if [ -z "$usbPartition" ]; then
       echo "No USB partition labeled PUBLIC found."
