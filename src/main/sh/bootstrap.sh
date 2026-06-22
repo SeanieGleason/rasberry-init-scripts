@@ -12,9 +12,7 @@ cd $TEMP_DIR/rasberry-init-scripts/src/main/sh/rasberry-pi/ && \
 bash init.sh && \
 cd $TEMP_DIR/rasberry-init-scripts/src/main/sh/pihole/ && \
 bash init.sh && \
-cd $TEMP_DIR/rasberry-init-scripts/src/main/sh/save-file-converter/ && \
-bash init.sh #&& \
-#cd $TEMP_DIR/rasberry-init-scripts/src/main/sh/samba/ && \
+cd $TEMP_DIR/rasberry-init-scripts/src/main/sh/samba/ && \
 bash init.sh
-#cd $TEMP_DIR/rasberry-init-scripts/src/main/sh/dreampi/ && \
-#bash init.sh
+cd $TEMP_DIR/rasberry-init-scripts/src/main/sh/stash/ && \
+bash init.sh
