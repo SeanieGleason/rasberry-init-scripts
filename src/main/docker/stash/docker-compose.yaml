@@ -32,7 +32,7 @@ services:
       - /media/bambi/stash/config:/root/.stash
       ## Point this at your collection.
       ## The left side is where your collection is on your host, the right side is where it will be in stash.
-      - /media/bambi/stash/data:/data
+      - /media/bambi:/data
       ## This is where your stash's metadata lives
       - /media/bambi/stash/metadata:/metadata
       ## Any other cache content.
