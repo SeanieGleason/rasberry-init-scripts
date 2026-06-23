@@ -7,31 +7,31 @@ source "../common.sh"
 # Install HDParm
 ################################################################################
 function installHDParm() {
-local FUNC_NAME="installHDParm"
-already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
+  local FUNC_NAME="installHDParm"
+  already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 
-local usbDevice
-usbDevice=$(sudo blkid -o device -l -t PARTLABEL=bambi)
+  local usbDevice
+  usbDevice=$(sudo blkid -o device -l -t PARTLABEL=bambi)
 
-if [ -z "$usbDevice" ]; then
-    echo "No USB partition labeled bambi found."
-    return
-fi
+  if [ -z "$usbDevice" ]; then
+      echo "No USB partition labeled bambi found."
+      return
+  fi
 
-sudo apt install -y hdparm
-sudo hdparm -I "$usbDevice" | grep 'Write cache' || true
+  sudo apt install -y hdparm
+  sudo hdparm -I "$usbDevice" | grep 'Write cache' || true
 
-if ! grep -q "^$usbDevice" /etc/hdparm.conf 2>/dev/null; then
-    sudo tee -a /etc/hdparm.conf > /dev/null <<EOF
+  if ! grep -q "^$usbDevice" /etc/hdparm.conf 2>/dev/null; then
+      sudo tee -a /etc/hdparm.conf > /dev/null <<EOF
 
 $usbDevice {
 write_cache = on
 spindown_time = 120
 }
 EOF
-fi
+  fi
 
-mark_done "$FUNC_NAME"
+  mark_done "$FUNC_NAME"
 
 }
 
@@ -39,15 +39,15 @@ mark_done "$FUNC_NAME"
 # Install Samba
 ################################################################################
 function installSamba() {
-local FUNC_NAME="installSamba"
-already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
+  local FUNC_NAME="installSamba"
+  already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 
-sudo apt install -y samba
+  sudo apt install -y samba
 
-sudo sed -i '/^\[global\]/a access based share enum = yes' /etc/samba/smb.conf
+  sudo sed -i '/^\[global\]/a access based share enum = yes' /etc/samba/smb.conf
 
-if ! grep -q "\[alt\]" /etc/samba/smb.conf; then
-    sudo tee -a /etc/samba/smb.conf > /dev/null <<'EOF'
+  if ! grep -q "\[alt\]" /etc/samba/smb.conf; then
+      sudo tee -a /etc/samba/smb.conf > /dev/null <<'EOF'
 
 [alt]
 path = /media/bambi
@@ -67,11 +67,11 @@ create mask = 0777
 directory mask = 0777
 force user = pi
 EOF
-fi
+  fi
 
-sudo smbpasswd -a pi
+  sudo smbpasswd -a pi
 
-mark_done "$FUNC_NAME"
+  mark_done "$FUNC_NAME"
 
 }
 
@@ -81,88 +81,149 @@ mark_done "$FUNC_NAME"
 
 ################################################################################
 function setUSBDrive() {
-local FUNC_NAME="setUSBDrive"
-already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 
-sudo apt install -y cryptsetup cryptsetup-initramfs
+  local FUNC_NAME="setUSBDrive"
 
-local luksPartition
-luksPartition=$(sudo blkid -o device -l -t PARTLABEL=bambi)
+  already_done "$FUNC_NAME" && echo "$FUNC_NAME already done." && return
 
-if [ -z "$luksPartition" ]; then
-    echo "No LUKS partition labeled bambi found."
-    exit 1
+  sudo apt install -y cryptsetup cryptsetup-initramfs
+
+  local luksPartition
+  luksPartition=$(sudo blkid -o device -l -t PARTLABEL=bambi)
+
+  if [ -z "$luksPartition" ]; then
+      echo "No LUKS partition labeled bambi found."
+      exit 1
+  fi
+
+  local mapperName="bambi"
+  local mountPoint="/media/bambi"
+  local keyFile="/root/.luks-bambi.key"
+
+  ############################################################################
+  # Create mount point
+  ############################################################################
+
+  sudo mkdir -p "$mountPoint"
+
+  ############################################################################
+  # Create key file
+  ############################################################################
+
+  if [ ! -f "$keyFile" ]; then
+
+      echo "Creating LUKS key file..."
+
+      sudo dd if=/dev/urandom of="$keyFile" bs=4096 count=1 status=none
+      sudo chmod 600 "$keyFile"
+
+      echo "Adding key file to LUKS volume..."
+      sudo cryptsetup luksAddKey "$luksPartition" "$keyFile"
+
+  fi
+
+  ############################################################################
+  # Get UUID
+  ############################################################################
+
+  local uuid
+  uuid=$(sudo blkid -s UUID -o value "$luksPartition")
+
+  ############################################################################
+  # Configure crypttab
+  ############################################################################
+
+  if ! grep -q "^${mapperName} " /etc/crypttab 2>/dev/null; then
+      echo "${mapperName} UUID=${uuid} ${keyFile} luks,nofail" | \
+          sudo tee -a /etc/crypttab >/dev/null
+  fi
+
+  ############################################################################
+  # Configure fstab
+  ############################################################################
+
+  if ! grep -q "/dev/mapper/${mapperName}" /etc/fstab 2>/dev/null; then
+      echo "/dev/mapper/${mapperName} ${mountPoint} ext4 defaults,nofail 0 2" | \
+          sudo tee -a /etc/fstab >/dev/null
+  fi
+
+  ############################################################################
+  # Create unlock script
+  ############################################################################
+
+  sudo tee /usr/local/bin/bambi-unlock.sh >/dev/null <<EOF
+#!/bin/bash
+
+UUID="${uuid}"
+MAPPER="${mapperName}"
+KEYFILE="${keyFile}"
+MOUNTPOINT="${mountPoint}"
+
+DEVICE=""
+
+for i in {1..60}; do
+    DEVICE=\$(blkid -U "\$UUID" 2>/dev/null || true)
+
+    if [ -n "\$DEVICE" ]; then
+        break
+    fi
+
+    sleep 1
+done
+
+if [ -z "\$DEVICE" ]; then
+    echo "Bambi drive not present, skipping unlock."
+    exit 0
 fi
 
-local mapperName="bambi"
-local mountPoint="/media/bambi"
-local keyFile="/root/.luks-bambi.key"
-
-############################################################################
-# Create mount point
-############################################################################
-
-sudo mkdir -p "$mountPoint"
-
-############################################################################
-# Create key file
-############################################################################
-
-if [ ! -f "$keyFile" ]; then
-    echo "Creating LUKS key file..."
-
-    sudo dd if=/dev/urandom of="$keyFile" bs=4096 count=1 status=none
-    sudo chmod 600 "$keyFile"
-
-    echo "Adding key file to LUKS volume..."
-    sudo cryptsetup luksAddKey "$luksPartition" "$keyFile"
+if ! cryptsetup status "\$MAPPER" >/dev/null 2>&1; then
+    cryptsetup luksOpen "\$DEVICE" "\$MAPPER" --key-file "\$KEYFILE" || true
 fi
 
-############################################################################
-# Configure crypttab
-############################################################################
-
-local uuid
-uuid=$(sudo blkid -s UUID -o value "$luksPartition")
-
-if ! grep -q "^${mapperName} " /etc/crypttab 2>/dev/null; then
-    echo "${mapperName} UUID=${uuid} ${keyFile} luks,nofail" | \
-        sudo tee -a /etc/crypttab > /dev/null
+if ! mountpoint -q "\$MOUNTPOINT"; then
+    mount "\$MOUNTPOINT" || true
 fi
 
-############################################################################
-# Unlock device
-############################################################################
+chown -R pi:pi "\$MOUNTPOINT" || true
 
-if ! sudo cryptsetup status "$mapperName" >/dev/null 2>&1; then
-    sudo cryptsetup luksOpen \
-        "$luksPartition" \
-        "$mapperName" \
-        --key-file "$keyFile"
-fi
+exit 0
+EOF
 
-############################################################################
-# Configure fstab
-############################################################################
+  sudo chmod 755 /usr/local/bin/bambi-unlock.sh
 
-if ! grep -q "/dev/mapper/${mapperName}" /etc/fstab 2>/dev/null; then
-    echo "/dev/mapper/${mapperName} ${mountPoint} ext4 defaults,nofail 0 2" | \
-        sudo tee -a /etc/fstab > /dev/null
-fi
+  ############################################################################
+  # Create systemd service
+  ############################################################################
 
-############################################################################
-# Mount device
-############################################################################
+  sudo tee /etc/systemd/system/bambi-unlock.service >/dev/null <<EOF
+[Unit]
+Description=Unlock and mount Bambi USB drive
+After=multi-user.target
 
-sudo mountpoint -q "$mountPoint" || \
-    sudo mount "/dev/mapper/${mapperName}" "$mountPoint"
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/bambi-unlock.sh
+ExecStop=/usr/bin/umount ${mountPoint}
+ExecStop=/usr/sbin/cryptsetup luksClose ${mapperName}
 
-sudo chown -R pi:pi "$mountPoint"
+[Install]
+WantedBy=multi-user.target
+EOF
 
-mark_done "$FUNC_NAME"
+  ############################################################################
+  # Enable and start service
+  ############################################################################
 
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now bambi-unlock.service
+
+  echo "Bambi USB drive configured."
+  echo "Drive unlocked and mounted if present."
+  echo "Drive will automatically unlock and mount at boot."
+
+  mark_done "$FUNC_NAME"
 }
-
 ################################################################################
 # Setup microsd card for mounting
 ################################################################################
